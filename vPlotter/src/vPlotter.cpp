@@ -171,8 +171,8 @@ ofVec2f vPlotter::getResolution(ofPoint _pos){
     
     float err = .00000000001;
     ofPoint pc = calcPointB(a, b, c);
-    if((_pos.x-err<pc.x<_pos.x+err) ||
-       (_pos.y-err<pc.y<_pos.y+err)){
+    if((_pos.x-err<pc.x && pc.x<_pos.x+err) ||
+       (_pos.y-err<pc.y && pc.y<_pos.y+err)){
         float db = _pos.distance(calcPointB(a, b+1, c));
         float da = _pos.distance(calcPointB(a+1, b, c));
         return ofVec2f(da/1.4,db/1.4);
@@ -194,8 +194,8 @@ void vPlotter::print(vector<ofPolyline> _paths){
         bPlotting = false;
     }
     
-    for(int i = 0; i < _paths.size(); i++) {
-        for(int j = 0; j < _paths[i].getVertices().size(); j++) {
+    for(unsigned int i = 0; i < _paths.size(); i++) {
+        for(unsigned int j = 0; j < _paths[i].getVertices().size(); j++) {
             addInstruction( ((j==0)?MOVE_ABS:LINE_ABS), _paths[i].getVertices()[j] );
         }
     }
@@ -203,29 +203,29 @@ void vPlotter::print(vector<ofPolyline> _paths){
     if (instructions.size() > 0) {
         addInstruction(MOVE_ABS, printingArea.getCenter());
         bPlotting = true;
-        startThread(true, false);
+        startThread();
     }
 }
 
 void vPlotter::print(Comand _command, ofPoint _pos){
-    bool printing = false;
+    //bool printing = false;
     
     if (!bPlotting){
         addInstruction(_command, _pos);
         if (instructions.size() > 0) {
             bPlotting = true;
-            startThread(true, false);
+            startThread();
         }
     } else {
         if(lock()){
             addInstruction(_command, _pos);
-            printing = bPlotting;
+            //printing = bPlotting;
             unlock();
         }
     }
 }
 
-bool vPlotter::addInstruction(Comand _command, ofPoint _pos){
+void vPlotter::addInstruction(Comand _command, ofPoint _pos){
     ofPoint t;
     
     //  ABSolute or RELative positions??
@@ -376,9 +376,9 @@ void vPlotter::draw(){
         } else {
             ofSetColor(0,255,0);
         }
-        ofRect(M1+ofPoint(-20, -20), 40, 40);
-        ofCircle(M1,pulleyRadius);
-        ofLine(M1,currentPos);
+        ofDrawRectangle(M1+ofPoint(-20, -20), 40, 40);
+        ofDrawCircle(M1,pulleyRadius);
+        ofDrawLine(M1,currentPos);
         ofDrawBitmapString(ofToString(tension.x,2), M1+ofPoint(20,50));
         //  M2
         if (tension.y<0) {
@@ -388,14 +388,14 @@ void vPlotter::draw(){
         } else {
             ofSetColor(0,255,0);
         }
-        ofRect(M2+ofPoint(-20, -20), 40, 40);
-        ofCircle(M2, pulleyRadius);
-        ofLine(M2,currentPos);
+        ofDrawRectangle(M2+ofPoint(-20, -20), 40, 40);
+        ofDrawCircle(M2, pulleyRadius);
+        ofDrawLine(M2,currentPos);
         ofDrawBitmapString(ofToString(tension.y,2), M2+ofPoint(-60,50));
 
         //  Printing Area
         ofSetColor(0,255,0);
-        ofRect(printingArea);
+        ofDrawRectangle(printingArea);
         {
             ofPushMatrix();
             ofPushStyle();
@@ -408,12 +408,12 @@ void vPlotter::draw(){
             }
             ofDrawBitmapString(ofToString(resolution.x,2)+"/"+ofToString(resolution.y,2), -70,50);
             ofNoFill();
-            ofCircle(0,0,20);
+            ofDrawCircle(0,0,20);
             if(penState==PEN_UP) ofNoFill();
             else ofFill();
-            ofCircle(0,0,8);
-            ofLine(-30,0,30,0);
-            ofLine(0,-30,0,30);
+            ofDrawCircle(0,0,8);
+            ofDrawLine(-30,0,30,0);
+            ofDrawLine(0,-30,0,30);
             ofPopStyle();
             ofPopMatrix();
         }
@@ -421,7 +421,7 @@ void vPlotter::draw(){
         //  Future Instructions
         ofSetColor(0,255,255);
         ofBeginShape();
-        for(int i=0;i<instructions.size();i++){
+        for(unsigned int i=0;i<instructions.size();i++){
             ofVertex(instructions[i]);
         }
         ofEndShape();

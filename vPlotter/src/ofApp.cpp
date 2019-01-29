@@ -26,8 +26,8 @@ void ofApp::setup(){
             ofPath p = svg.getPathAt(i);
             // svg defaults to non zero winding which doesn't look so good as contours
             p.setPolyWindingMode(OF_POLY_WINDING_ODD);
-            vector<ofPolyline>& lines = p.getOutline();
-            for(int j=0;j<(int)lines.size();j++){
+            vector<ofPolyline> lines = p.getOutline();
+            for(unsigned int j=0;j<lines.size();j++){
                 shape.push_back(lines[j].getResampledBySpacing(1));
             }
         }
@@ -37,8 +37,8 @@ void ofApp::setup(){
             float minY = 1000000000;
             float maxX = 0;
             float maxY = 0;
-            for (int i=0; i < shape.size(); i++) {
-                for (int j=0; j<shape[i].size(); j++) {
+            for (unsigned int i=0; i < shape.size(); i++) {
+                for (unsigned int j=0; j<shape[i].size(); j++) {
                     ofPoint pos = shape[i][j];
                     if(pos.x < minX)minX = pos.x;
                     if(pos.y < minY)minY = pos.y;
@@ -56,16 +56,16 @@ void ofApp::setup(){
             //        } else {
             area.setFromCenter(printArea.getCenter(), printArea.height*ratio, printArea.height);
             //        }
-            for (int i=0; i < shape.size(); i++) {
-                for (int j=0; j<shape[i].size(); j++) {
+            for (unsigned int i=0; i < shape.size(); i++) {
+                for (unsigned int j=0; j<shape[i].size(); j++) {
                     ofPoint pos = shape[i][j];
                     shape[i][j].x = ofMap(pos.x, minX, maxX, area.x, area.x+area.width);
                     shape[i][j].y = ofMap(pos.y, minY, maxY, area.y, area.y+area.height);
                 }
             }
         } else {
-            for (int i=0; i < shape.size(); i++) {
-                for (int j=0; j<shape[i].size(); j++) {
+            for (unsigned int i=0; i < shape.size(); i++) {
+                for (unsigned int j=0; j<shape[i].size(); j++) {
                     shape[i][j] += printArea.getTopLeft();
                 }
             }
@@ -75,8 +75,8 @@ void ofApp::setup(){
             ofPoint center = printArea.getCenter();
             float scl = ((float)(scale))/100.0f;
             float rot = ofDegToRad(rotate);
-            for (int i=0; i < shape.size(); i++) {
-                for (int j=0; j<shape[i].size(); j++) {
+            for (unsigned int i=0; i < shape.size(); i++) {
+                for (unsigned int j=0; j<shape[i].size(); j++) {
                     ofPoint toCenter = shape[i][j] - center;
                     
                     float rad = toCenter.length()*scl;
@@ -99,7 +99,7 @@ void ofApp::update(){
     if(oscPort > 0){
         while(receiver.hasWaitingMessages()){
             ofxOscMessage m;
-            receiver.getNextMessage(&m);
+            receiver.getNextMessage(m);
             
             if(m.getAddress() == "/setup"){
                 degPenUp = m.getArgAsInt32(0);
@@ -162,13 +162,13 @@ void ofApp::draw(){
 #ifdef TARGET_RASPBERRY_PI
     ofRectangle area = plotter.getPrintingArea();
     ofPushMatrix();
-    ofRotateZ(-90);
+    ofRotateZDeg(-90);
     ofTranslate(-area.x,-area.y);
     ofTranslate(-area.width,0);
     
     
     ofSetColor(255);
-    for (int i=0; i<shape.size(); i++) {
+    for (unsigned int i=0; i<shape.size(); i++) {
         shape[i].draw();
     }
     ofScale(2.0, 2.0);
@@ -178,7 +178,7 @@ void ofApp::draw(){
     ofPushMatrix();
     ofScale(0.5, 0.5);
     ofSetColor(255);
-    for (int i=0; i<shape.size(); i++) {
+    for (unsigned int i=0; i<shape.size(); i++) {
         shape[i].draw();
     }
     ofScale(2.0, 2.0);

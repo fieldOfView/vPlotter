@@ -83,7 +83,7 @@ private:
     ofPoint     calcPointB(float a, float b, float c)const;
     void        threadedFunction();
     
-    bool        addInstruction(Comand _command, ofPoint _pos);
+    void        addInstruction(Comand _command, ofPoint _pos);
     bool        exeInstruction(Instruction _inst);
     
     vector<Instruction> instructions;
