@@ -46,7 +46,6 @@ int main(int argc, char * argv[]){
     }
     
     ofApp *app = new ofApp();
-    app->sysGpio = true;
     app->bFit = true;
     app->file = "tux.svg";
     app->scale = 100;
@@ -59,10 +58,6 @@ int main(int argc, char * argv[]){
     app->degPenDown = 70;
     app->penDelay = 2000;
     app->oscPort = -1;
-    
-    if(cmdOptionExists(argv, argv+argc, "-gipo")){
-        app->sysGpio = false;
-    }
     
     //  HELP
     //

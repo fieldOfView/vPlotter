@@ -10,22 +10,31 @@
 #include "ofMain.h"
 
 #ifdef TARGET_RASPBERRY_PI
-#include "wiringPi.h"
-#include "softServo.h"
+#include "pigpio.h"
 #endif
 
 //  PINS
 //----------------------------
-#define SERVO_PIN 18
+#define SERVO_PIN 12
 
-#define STEP_PIN_M1 4
-#define DIR_PIN_M1 17
+#define STEPPER_ENABLE_PIN 27
+
+#define STEP_PIN_M1 17
+#define DIR_PIN_M1 4
 
 #define STEP_PIN_M2 23
 #define DIR_PIN_M2 22
 
+#define ENDSTOP_LEFT_PIN 5
+#define ENDSTOP_RIGHT_PIN 6
+#define ENDSTOP_BOTTOM_PIN 16
+
+
 // STATES
 //----------------------------
+// pin states
+#define LOW 0
+#define HIGH 1
 // pen states
 #define PEN_UP 0
 #define PEN_DOWN 1
@@ -33,8 +42,8 @@
 #define DIR_UP 1
 #define DIR_DOWN 0
 //  Servo conversion values
-#define MIN_PULSE_WIDTH -250 //544   // the shortest pulse sent to a servo
-#define MAX_PULSE_WIDTH 1250 //2400  // the longest pulse sent to a servo
+#define MIN_PULSE_WIDTH 544   // the shortest pulse sent to a servo
+#define MAX_PULSE_WIDTH 2400  // the longest pulse sent to a servo
 
 struct MotorVal{
     long M1;
@@ -59,7 +68,7 @@ class vPlotter : public ofThread {
 public:
     vPlotter();
     
-    bool        setup(int _degPenUp = 140 , int _degPenDown = 70, int _mmMotorsDistance = 1500, int _mmPulleyRadius = 5, int _stepsPerRotation = 800, bool _sysGPIO = false);
+    bool        setup(int _degPenUp = 140 , int _degPenDown = 70, int _mmMotorsDistance = 1500, int _mmPulleyRadius = 5, int _stepsPerRotation = 800);
     
     bool        isPrinting();
     bool        isHealthyAt(ofPoint _pos);

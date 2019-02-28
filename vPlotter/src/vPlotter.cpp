@@ -27,7 +27,7 @@ vPlotter::vPlotter(){
     bPlotting   = false;
 }
 
-bool vPlotter::setup(int _penPosUp, int _penPosDown, int _motorsDistance, int _pulleyRadius, int _stepsPerRotation, bool _sysGPIO){
+bool vPlotter::setup(int _penPosUp, int _penPosDown, int _motorsDistance, int _pulleyRadius, int _stepsPerRotation){
     //  Values
     motorsDistance = _motorsDistance;
     M1.set(0, 0);
@@ -78,32 +78,25 @@ bool vPlotter::setup(int _penPosUp, int _penPosDown, int _motorsDistance, int _p
     //  Setup WiringPi
     //
 #ifdef TARGET_RASPBERRY_PI
-    if(_sysGPIO){
-        if(wiringPiSetupSys() == -1){
-            printf("Error on wiringPi setup\n");
-            return false;
-        }
-    } else {
-        if(wiringPiSetupGpio() == -1){
-            printf("Error on wiringPi setup\n");
-            return false;
-        }
-    }
-    
+    gpioInitialise();
+
     //  Pins
-    pinMode(DIR_PIN_M1, OUTPUT);
-    pinMode(STEP_PIN_M1, OUTPUT);
-    pinMode(DIR_PIN_M2, OUTPUT);
-    pinMode(STEP_PIN_M2, OUTPUT);
-    
-    digitalWrite(DIR_PIN_M1, LOW);
-    digitalWrite(DIR_PIN_M2, LOW);
-    
-    softServoSetup(SERVO_PIN, -1, -1, -1, -1, -1, -1, -1);
-    softServoWrite(SERVO_PIN, penPosUp);
+    gpioSetMode(STEPPER_ENABLE_PIN, PI_OUTPUT);
+    gpioSetMode(DIR_PIN_M1, PI_OUTPUT);
+    gpioSetMode(STEP_PIN_M1, PI_OUTPUT);
+    gpioSetMode(DIR_PIN_M2, PI_OUTPUT);
+    gpioSetMode(STEP_PIN_M2, PI_OUTPUT);
+
+    gpioWrite(STEPPER_ENABLE_PIN, HIGH);
+    gpioWrite(DIR_PIN_M1, LOW);
+    gpioWrite(DIR_PIN_M2, LOW);
+
+    gpioServo(SERVO_PIN, penPosUp);
     usleep(penDelay*1000.0f);
 #endif
-    
+
+    ofLogNotice() << "pigpio setup done";
+
     return true;
 }
 
@@ -182,6 +175,14 @@ ofVec2f vPlotter::getResolution(ofPoint _pos){
 }
 
 void vPlotter::stop(){
+#ifdef TARGET_RASPBERRY_PI
+    // put steppers back to sleep
+
+    gpioInitialise(); // pigpio has already been terminated so it needs to be reinitialised
+    gpioWrite(STEPPER_ENABLE_PIN, LOW);
+    gpioTerminate();
+#endif
+
     stopThread();
     bPlotting = false;
     waitForThread(true);
@@ -189,6 +190,8 @@ void vPlotter::stop(){
 }
 
 void vPlotter::print(vector<ofPolyline> _paths){
+    ofLogNotice() << "Starting print from paths";
+
     if(isPrinting()){
         stopThread();
         bPlotting = false;
@@ -293,7 +296,7 @@ bool vPlotter::exeInstruction(Instruction _inst){
 
                 if(penState == PEN_UP){
 #ifdef TARGET_RASPBERRY_PI
-                    softServoWrite(SERVO_PIN,penPosDown);
+                    gpioServo(SERVO_PIN,penPosDown);
 #endif
                     usleep(pd);
                 }
@@ -306,7 +309,7 @@ bool vPlotter::exeInstruction(Instruction _inst){
 
                 if(penState == PEN_DOWN){
 #ifdef TARGET_RASPBERRY_PI
-                    softServoWrite(SERVO_PIN,penPosUp);
+                    gpioServo(SERVO_PIN,penPosUp);
 #endif
                     usleep(pd);
                 }
@@ -328,22 +331,22 @@ bool vPlotter::exeInstruction(Instruction _inst){
     dir.M1 = (t.M1 > s.M1) ? +1 : -1;
     dir.M2 = (t.M2 > s.M2) ? +1 : -1;
 #ifdef TARGET_RASPBERRY_PI
-    digitalWrite(DIR_PIN_M1, (t.M1 > s.M1) ? DIR_UP : DIR_DOWN);
-	digitalWrite(DIR_PIN_M2, (t.M2 > s.M2) ? DIR_DOWN : DIR_UP);
+    gpioWrite(DIR_PIN_M1, (t.M1 > s.M1) ? DIR_UP : DIR_DOWN);
+    gpioWrite(DIR_PIN_M2, (t.M2 > s.M2) ? DIR_DOWN : DIR_UP);
 #endif
     //  Make steps
     //
     while (s!=t){
         if( t.M1 - s.M1 != 0){
 #ifdef TARGET_RASPBERRY_PI
-            digitalWrite(STEP_PIN_M1, HIGH);
+            gpioWrite(STEP_PIN_M1, HIGH);
 #endif
             s.M1 += dir.M1;
         }
         
         if(t.M2-s.M2 != 0){
 #ifdef TARGET_RASPBERRY_PI
-            digitalWrite(STEP_PIN_M2, HIGH);
+            gpioWrite(STEP_PIN_M2, HIGH);
 #endif
             s.M2 += dir.M2;
         }
@@ -351,8 +354,8 @@ bool vPlotter::exeInstruction(Instruction _inst){
         currentPos = getPosFor(s);
         usleep(250);
 #ifdef TARGET_RASPBERRY_PI
-        digitalWrite(STEP_PIN_M1, LOW);
-        digitalWrite(STEP_PIN_M2, LOW);
+        gpioWrite(STEP_PIN_M1, LOW);
+        gpioWrite(STEP_PIN_M2, LOW);
 #endif
         usleep(250);
         usleep(sd);

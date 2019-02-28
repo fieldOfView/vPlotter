@@ -42,5 +42,4 @@ public:
     int                 oscPort;
     
     bool                bFit;
-    bool                sysGpio;
 };

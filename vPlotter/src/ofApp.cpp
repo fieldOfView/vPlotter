@@ -7,7 +7,7 @@ void ofApp::setup(){
     
     // PLOTTER
     //
-    plotter.setup(degPenUp,degPenDown,mmMotorsDistance,mmPulleyRadius,stepsPerRotation,sysGpio);
+    plotter.setup(degPenUp,degPenDown,mmMotorsDistance,mmPulleyRadius,stepsPerRotation);
     plotter.stepDelay   = stepDelay;
     plotter.penDelay    = penDelay;
     printArea = plotter.getPrintingArea();
@@ -93,6 +93,7 @@ void ofApp::setup(){
     }
 }
 
+
 //--------------------------------------------------------------
 void ofApp::update(){
     
@@ -109,7 +110,7 @@ void ofApp::update(){
                 stepsPerRotation = m.getArgAsInt32(4);
                 
                 cout << "/setup " << degPenUp << " " << degPenDown << " " << mmMotorsDistance << " " << mmPulleyRadius << " " << stepsPerRotation << endl;
-                plotter.setup(degPenUp,degPenDown,mmMotorsDistance,mmPulleyRadius,stepsPerRotation,sysGpio);
+                plotter.setup(degPenUp,degPenDown,mmMotorsDistance,mmPulleyRadius,stepsPerRotation);
                 printArea = plotter.getPrintingArea();
             } else if(m.getAddress() == "/move/abs"){
                 ofPoint pos;
